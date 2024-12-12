@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PostShowResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -80,7 +81,9 @@ class PostController extends Controller
 
     public function show($id){
         try {
-            $post = Post::with('user', 'comments')->where('id',$id)->first();
+            //$post = Post::with('user', 'comments', 'likes')->where('id',$id)->first();
+            $post = Post::where('id', $id)->first();
+            $post_a = new PostShowResource($post);
             if(!$post){
                 return response()->json([
                     'message' => 'Post id not found'
@@ -88,7 +91,7 @@ class PostController extends Controller
             }
 
             return response()->json([
-                'post' => $post
+                'post' => $post_a
             ], 200);
 
         } catch (\Throwable $th) {
