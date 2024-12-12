@@ -6,6 +6,7 @@ use App\Http\Resources\PostShowResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
@@ -42,6 +43,7 @@ class PostController extends Controller
     }
 
     public function update(Request $request){
+
         $validator = Validator::make($request->all() ,[
             'title' => 'required|max:255',
             'content' => 'required',
@@ -56,21 +58,24 @@ class PostController extends Controller
 
         try {
             $post = Post::find($request->id);
-
             if(!$post){
                 return response()->json([
                     'message' => 'Post id not found'
                 ], 404);
             }
 
-            $post->title = $request->title;
-            $post->content = $request->content;
-            $post->update();
+            $response = Gate::authorize('update', $post);
 
-            return response()->json([
-                'message' => 'Post updated successfully',
-                'post' => $post
-            ], 200);
+                if($response->allowed()){
+                    $post->title = $request->title;
+                $post->content = $request->content;
+                $post->update();
+
+                return response()->json([
+                    'message' => 'Post updated successfully',
+                    'post' => $post
+                ], 200);
+            }
 
         } catch (\Exception $th) {
             return response()->json([
@@ -124,11 +129,14 @@ class PostController extends Controller
                     'message' => 'Post id not found'
                 ], 404);
             }
-            $post->delete();
+            $response = Gate::authorize('delete', $post);
 
-            return response()->json([
-                'message' => 'Post deleted successfully'
-            ], 200);
+                 if($response->allowed()){
+                        $post->delete();
+                        return response()->json([
+                            'message' => 'Post deleted successfully'
+                        ], 200);
+                 }
 
         } catch (\Throwable $th) {
             return response()->json([
