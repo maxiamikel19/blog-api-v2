@@ -47,4 +47,20 @@ class LikesController extends Controller
         }
 
     }
+
+    public function unlikePost($id){
+        $user = auth()->user();
+        $unlike = 0;
+        $like = Like::where('id', $id)
+                ->where('user_id', $user->id)
+                ->where('like', 1)
+                ->first();
+        if($like == null){
+            return null;
+        }
+        $like->delete();
+        return response()->json([
+            'message' => 'Post sucessfully unliked'
+        ], 200);
+    }
 }
