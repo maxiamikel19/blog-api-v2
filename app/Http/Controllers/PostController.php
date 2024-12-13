@@ -109,7 +109,7 @@ class PostController extends Controller
 
     public function index  (){
         try {
-           $posts = Post::all();
+           $posts = Post::paginate(2);
            return response()->json([
             'posts' => $posts
         ], 200);
@@ -144,4 +144,25 @@ class PostController extends Controller
             ], 500);
         }
     }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+
+        if (!$query) {
+            return response()->json(['message' => 'Tou search posts, please fill the input box'], 400);
+        }
+
+        $posts = Post::where('title', 'like', "%$query%")
+            ->orWhere('content', 'like', "%$query%")
+            ->orWhere('created_at','like', "%$query%")
+            ->paginate(10);
+
+        if ($posts->isEmpty()) {
+            return response()->json(['message' => 'No post found in this context.'], 404);
+        }
+
+        return response()->json(['posts' => $posts], 200);
+    }
+
 }

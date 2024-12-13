@@ -42,8 +42,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 //POST
-//GET: http://localhost:8000/api/all/posts
+//GET: http://localhost:8000/api/all/posts & localhost:8000/api/all/posts?page=2
 Route::get('/single/posts/{id}', [PostController::class, 'show']);
 //GET: http://localhost:8000/api/single/posts/3
 Route::get('/all/posts', [PostController::class, 'index']);
+//GET http://localhost:8000/api/posts/search?page=1
+Route::get('/posts/search', [PostController::class, 'search']);
 
