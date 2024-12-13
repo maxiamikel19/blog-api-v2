@@ -11,6 +11,26 @@ use PhpParser\Node\Stmt\TryCatch;
 
 class AuthController extends Controller
 {
+    /**
+ * @OA\Post(
+ *     path="/api/register",
+ *     summary="Create a new user",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(ref="#/components/schemas/User")
+ *     ),
+ *     @OA\Response(
+ *         response="201",
+ *         description="User and the user token",
+ *         @OA\JsonContent(ref="#/components/schemas/User")
+ *     ),
+ *     @OA\Response(
+ *         response="422",
+ *         description="Validations input",
+ *         @OA\JsonContent(ref="#/components/schemas/User")
+ *     )
+ * )
+ */
     public function register(Request $request){
         $validator = Validator::make($request->all() ,[
             'name' => 'required|string|max:255',
@@ -44,6 +64,39 @@ class AuthController extends Controller
         }
     }
 
+
+ /**
+ * @OA\Post(
+ *     path="/api/login",
+ *     summary="Log in the user",
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\JsonContent(
+ *             @OA\Property(property="email", type="string"),
+ *             @OA\Property(property="password", type="string")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response="200",
+ *         description="User object and Token",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="token", type="string", description="Token")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response="401",
+ *         description="User credentials incorrect"
+ *     ),
+ *     @OA\Response(
+ *         response="422",
+ *         description="Input check validations message"
+ *     ),
+ *     @OA\Response(
+ *         response="500",
+ *         description="Internal server error"
+ *     )
+ * )
+ */
     public function login(Request $request ){
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users',
@@ -81,12 +134,36 @@ class AuthController extends Controller
         }
     }
 
+
+    /**
+     * @OA\Post(
+     *     path="/api/logout",
+     *     summary="Logged out the user (revoke the token)",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response="200",
+     *         description="Logged out successfully"
+     *     ),
+     *     @OA\Response(
+     *         response="401",
+     *         description="Invalid token"
+     *     )
+     * )
+     */
     public function logout(Request $request){
         $user = $request->user();
-        $user->tokens()->delete();
+        try {
+            $user->tokens()->delete();
 
-        return response()->json([
-            'message' => 'Successfully logged out'
-        ], 200);
+            return response()->json([
+                'message' => 'Successfully logged out'
+            ], 200);
+
+        } catch (\Exception $th) {
+            return response()->json([
+                'message' => $th->getMessage()
+            ], 401);
+        }
+
     }
 }
